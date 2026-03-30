@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>FRSHDROP CLOTHING SHOP</title>
+
+<style>
+body{
+  font-family:Lobster;
+  margin:0;
+  background:url('https://i.pinimg.com/1200x/b4/98/a6/b498a662b4ded394498aa9172abf8f90.jpg') no-repeat center center/cover;
+}
+
+/* DARK OVERLAY */
+body::before{
+  content:"";
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.6);
+  z-index:-1;
+}
+
+header{
+  background:rgba(0,0,0,0.7);
+  color:white;
+  padding:15px;
+  display:flex;
+  align-items:center;
+}
+
+.searchBar{
+  margin-left:20px;
+  padding:8px;
+  width:200px;
+}
+
+.container{
+  padding:20px;
+  color:white;
+}
+
+/* PRODUCT */
+.product{
+  background:white;
+  display:inline-block;
+  padding:15px;
+  margin:10px;
+  border-radius:10px;
+  width:200px;
+  color:black;
+  transition:0.3s;
+}
+
+.product:hover{
+  transform:scale(1.05);
+}
+
+.product img{
+  width:100%;
+  height:150px;
+  object-fit:cover;
+}
+
+button{
+  padding:8px;
+  margin:5px;
+  border:none;
+  cursor:pointer;
+  border-radius:5px;
+}
+
+.add{background:green;color:white;}
+.buy{background:black;color:white;}
+.remove{background:red;color:white;}
+
+.cartItem{
+  background:white;
+  margin:10px;
+  padding:10px;
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+
+.cartTotal{
+  color:white; /* Make total visible */
+}
+
+.categoryBtn{
+  margin:5px;
+  padding:8px;
+}
+
+/* LOGIN GLASS */
+#loginBox{
+  position:absolute;
+  top:80px;
+  right:20px;
+  background:rgba(255,255,255,0.1);
+  backdrop-filter:blur(10px);
+  padding:20px;
+  border-radius:10px;
+  color:white;
+}
+
+input{
+  padding:8px;
+  margin:5px;
+  width:180px;
+}
+
+.profileImg{
+  width:40px;
+  height:40px;
+  border-radius:50%;
+  object-fit:cover;
+  cursor:pointer;
+}
+
+/* NEW POPUP */
+#popup{
+  position:fixed;
+  bottom:80px; /* above footer if any */
+  right:20px;
+  background:white;
+  color:black;
+  padding:15px;
+  border-radius:10px;
+  display:none;
+  box-shadow:0 0 10px rgba(0,0,0,0.5);
+}
+
+/* CONTACT US SECTION */
+.contact{
+  background:rgba(0,0,0,0.7);
+  color:white;
+  padding:30px;
+  text-align:center;
+  margin-top:50px;
+  border-radius:10px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="app"></div>
+
+<!-- NEW POPUP -->
+<div id="popup"></div>
+
+<script>
+let cart = JSON.parse(localStorage.getItem("cart")) || [];
+let users = JSON.parse(localStorage.getItem("users")) || { "Kurtnerves": "210709" };
+let loggedUser = localStorage.getItem("loginUser");
+
+// Products
+let products = [
+  {name:"Street Shirt", price:599, category:"Clothing", img:"https://i.pinimg.com/1200x/09/c4/fe/09c4fe9099209c4f0867354c821b3938.jpg"},
+  {name:"Denzy style jacket shirt", price:899, category:"Clothing", img:"https://i.pinimg.com/736x/31/71/7b/31717b16bca05c3f061d3a884f51c37c.jpg"},
+  {name:"DVNT Shirt Black", price:499, category:"Clothing", img:"https://i.pinimg.com/1200x/55/1f/bf/551fbfbbcf66586f020c1d03fb8cc9c7.jpg"},
+  {name:"White Shirt F1 Style", price:499, category:"Clothing", img:"https://i.pinimg.com/1200x/39/3d/35/393d353825cfd8d2f0fa41c9ce3b68ef.jpg"},
+  {name:"Black Oversized T-shirt", price:799, category:"Clothing", img:"https://i.pinimg.com/736x/be/42/c7/be42c75167d5992a790aea9936a520af.jpg"},
+  {name:"Graphic Street Tee", price:799, category:"Clothing", img:"https://i.pinimg.com/736x/62/2c/30/622c3034337829762cc0fabdd7a35b00.jpg"},
+  {name:"Vintage Washed Shirt", price:499, category:"Clothing", img:"https://i.pinimg.com/1200x/49/08/6a/49086ade822ac40f054d06c369ce3f8e.jpg"},
+  {name:"Black Printed Tee", price:699, category:"Clothing", img:"https://i.pinimg.com/1200x/d9/59/93/d95993c43268b2fde0590dfc62ac7768.jpg"},
+  {name:"Oversized Black Streetwear Tee", price:599, category:"Clothing", img:"https://i.pinimg.com/1200x/13/3e/59/133e592ec466cfeb2693cf0c29135c47.jpg"},
+  {name:"Stussy Sweater", price:1199, category:"Clothing", img:"https://i.pinimg.com/736x/34/70/a4/3470a4d3949e89db988015dbeb3d1c19.jpg"},
+
+  {name:"Bape white and black shoe", price:1500, category:"Shoes", img:"https://i.pinimg.com/1200x/4a/f5/9c/4af59ccf1c89fdd612a9076d10797639.jpg"},
+  {name:"Nike Silver White Initiator", price:3499, category:"Shoes", img:"https://i.pinimg.com/1200x/d6/ed/11/d6ed11030e110172774ff8683d34f910.jpg"},
+  {name:"Vans Black bulky", price:2899, category:"Shoes", img:"https://i.pinimg.com/1200x/dc/4b/fa/dc4bfa5ee9009a261020617fe9bb6ae0.jpg"},
+  {name:"Converse High Cut Dim Grey", price:3399, category:"Shoes", img:"https://i.pinimg.com/736x/02/f5/65/02f565f308f8a35c8c76fdb49ecdaf60.jpg"},
+  {name:"Adidas Samba Maroon", price:3199, category:"Shoes", img:"https://i.pinimg.com/736x/dd/f8/c5/ddf8c5fd0b988d646240ccb088266338.jpg"},
+
+  {name:"Bas Pro Shop Cap Dark Blue", price:999, category:"Accessories", img:"https://i.pinimg.com/736x/a5/30/7a/a5307aed7c9b36ec24c71b8e20bfb951.jpg"},
+  {name:"Star Belt", price:450, category:"Accessories", img:"https://i.pinimg.com/1200x/da/87/b4/da87b4a086f01a50d20324e7fe7ed263.jpg"},
+  {name:"Sunglasses", price:350, category:"Accessories", img:"https://i.pinimg.com/1200x/51/58/c8/5158c8d545a247962c04a4146aac693c.jpg"},
+  {name:"Elite Backpack", price:1499, category:"Accessories", img:"https://i.pinimg.com/736x/cc/b0/2f/ccb02fc585d63525d445d31ca36ca1aa.jpg"},
+  {name:"Double Necklace", price:250, category:"Accessories", img:"https://i.pinimg.com/1200x/f3/83/9f/f3839f5013785636b70868bfbaca6b5a.jpg"},
+];
+
+let currentCategory = "All";
+
+/* LOGIN/REGISTER */
+function showLogin(){
+  app.innerHTML = `
+  <header>
+    <h2>FRSHDROP</h2>
+    <div style="margin-left:auto;">
+      <input id="loginUser" placeholder="Username">
+      <input id="loginPass" type="password" placeholder="Password">
+      <button onclick="login()">Login</button>
+      <button onclick="register()">Sign Up</button>
+    </div>
+  </header>
+
+  <div style="text-align:center; margin-top:150px; color:white;">
+    <h1>WELCOME TO FRSHDROP</h1>
+    <p>Streetwear • Trend • Style</p>
+  </div>
+  `;
+}
+
+function login(){
+  let u = document.getElementById("loginUser").value;
+  let p = document.getElementById("loginPass").value;
+  if(users[u] && users[u] === p){
+    localStorage.setItem("loginUser", u);
+    loggedUser = u;
+    showShop();
+  } else {
+    alert("Wrong username or password!");
+  }
+}
+
+function register(){
+  let u = document.getElementById("loginUser").value;
+  let p = document.getElementById("loginPass").value;
+  if(u && p){
+    if(users[u]){
+      alert("Username already exists!");
+    } else {
+      users[u] = p;
+      localStorage.setItem("users", JSON.stringify(users));
+      alert("Account created!");
+    }
+  } else {
+    alert("Enter username and password.");
+  }
+}
+
+function logout(){
+  loggedUser = null;
+  localStorage.removeItem("loginUser");
+  showLogin();
+}
+
+/* SHOP */
+function showShop(){
+  let profiles = JSON.parse(localStorage.getItem("profiles")) || {};
+  let profileImg = profiles[loggedUser] || "https://via.placeholder.com/40";
+
+  app.innerHTML = `
+  <header>
+    <h2>FRSHDROP</h2>
+    <input id="searchInput" class="searchBar" placeholder="Search..." oninput="filterProducts()">
+    <div style="margin-left:auto; display:flex; align-items:center; gap:10px;">
+      <img src="${profileImg}" class="profileImg" onclick="showProfile()">
+      🛒 (${cart.length})
+      <button onclick="showCart()">Cart</button>
+      <button onclick="showAbout()">About</button>
+      <button onclick="logout()">Logout</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <button onclick="setCategory('All')">All</button>
+    <button onclick="setCategory('Clothing')">Clothing</button>
+    <button onclick="setCategory('Shoes')">Shoes</button>
+    <button onclick="setCategory('Accessories')">Accessories</button>
+
+    <div id="productsContainer"></div>
+
+   <div class="contact">
+  <h3>Contact Us</h3>
+
+  <form onsubmit="sendFeedback(event)">
+    <input type="text" id="name" placeholder="Your Name" required><br>
+    <input type="email" id="email" placeholder="Your Email" required><br>
+    <textarea id="message" placeholder="Your Message" required style="width:250px;height:80px;"></textarea><br>
+    <button type="submit" class="add">Send Feedback</button>
+  </form>
+
+  <p style="margin-top:10px;">
+    📧 <a href="mailto:FrshDrop@gmail.com" style="color:lightblue;">FrshDrop@gmail.com</a><br>
+    📞 +63 908 695 9654<br>
+    📍 Cebu City, Philippines
+  </p>
+</div>
+  </div>
+  `;
+  filterProducts();
+}
+
+/* FILTER PRODUCTS */
+function filterProducts(){
+  const search = document.getElementById("searchInput").value.toLowerCase();
+  const container = document.getElementById("productsContainer");
+
+  let filtered = products.filter(p =>
+    (currentCategory==="All" || p.category===currentCategory) &&
+    p.name.toLowerCase().includes(search)
+  );
+
+  container.innerHTML = filtered.map((p,i)=>`
+    <div class="product">
+      <img src="${p.img}">
+      <h3>${p.name}</h3>
+      <p>P${p.price}</p>
+      <input type="number" id="qty${i}" value="1" min="1" style="width:50px;">
+      <button class="add" onclick="addCart(${i})">Add</button>
+      <button class="buy" onclick="buyProduct(${i})">Buy</button>
+    </div>
+  `).join("");
+}
+
+/* ADD TO CART */
+function addCart(i){
+  let qty = parseInt(document.getElementById(`qty${i}`).value) || 1;
+  let product = products[i];
+
+  cart.push({ ...product, qty });
+  localStorage.setItem("cart", JSON.stringify(cart));
+
+  let popup = document.getElementById("popup");
+  popup.innerHTML = `
+    <strong>Added to Cart!</strong><br>
+    ${product.name}<br>
+    Qty: ${qty}<br>
+    Total: P${product.price * qty}
+  `;
+  popup.style.display = "block";
+
+  setTimeout(()=> popup.style.display="none",2000);
+}
+
+/* BUY PRODUCT IMMEDIATE */
+function buyProduct(i){
+  let qty = parseInt(document.getElementById(`qty${i}`).value) || 1;
+  let product = products[i];
+  alert(`You bought ${qty} x ${product.name} for P${product.price * qty}`);
+}
+
+/* SHOW CART WITH SELECT BUTTONS AND CHECKOUT */
+function showCart(){
+  let total=0;
+  let items="";
+  
+  items += `<div><input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)"> Select All</div>`;
+
+  cart.forEach((item,index)=>{
+    total += item.price * item.qty;
+    items += `
+      <div class="cartItem" style="width:300px; justify-content:space-between;">
+        <input type="checkbox" class="selectItem" data-index="${index}">
+        <img src="${item.img}" width="50">
+        <div style="flex:1; margin-left:10px;">
+          <h4 style="margin:0; font-size:14px;">${item.name}</h4>
+          <p style="margin:2px 0; font-size:13px;">Qty: ${item.qty}</p>
+          <p style="margin:2px 0; font-size:13px;">P${item.price * item.qty}</p>
+        </div>
+        <button class="remove" onclick="removeFromCart(${index})">Remove</button>
+      </div>`;
+  });
+
+  app.innerHTML = `
+  <h2>Cart</h2>
+  ${items}
+  <h3 class="cartTotal">Total: P${total}</h3>
+  <button onclick="checkoutSelected()">Checkout Selected</button>
+  <button onclick="showShop()">Back</button>
+  `;
+} 
+function toggleSelectAll(checkbox){
+  document.querySelectorAll(".selectItem").forEach(item => {
+    item.checked = checkbox.checked;
+  });
+}
+
+function checkoutSelected(){
+  let selectedIndexes = [];
+  document.querySelectorAll(".selectItem").forEach(item=>{
+    if(item.checked) selectedIndexes.push(parseInt(item.getAttribute("data-index")));
+  });
+
+  if(selectedIndexes.length === 0){
+    alert("Select at least one item to checkout!");
+    return;
+  }
+
+  let total = 0;
+  selectedIndexes.sort((a,b)=>b-a); // remove from cart safely
+  selectedIndexes.forEach(i=>{
+    total += cart[i].price * cart[i].qty;
+    cart.splice(i,1);
+  });
+
+  localStorage.setItem("cart", JSON.stringify(cart));
+  alert(`Checked out ${selectedIndexes.length} item(s) for P${total}`);
+  showCart();
+}
+
+/* REMOVE ITEM FROM CART */
+function removeFromCart(index){
+  cart.splice(index,1);
+  localStorage.setItem("cart", JSON.stringify(cart));
+  showCart();
+}
+
+/* ABOUT */
+function showAbout(){
+  app.innerHTML = `
+  <div style="display:flex; justify-content:center; align-items:center; height:80vh; text-align:center; color:white; flex-direction:column; padding:20px;">
+    <h2>About FRSHDROP</h2>
+    <p style="max-width:600px;">
+      FRSHDROP is your premier streetwear shop offering the latest trends in clothing, shoes, and accessories. 
+      Our mission is to provide unique and high-quality streetwear that lets you express your personal style. 
+      From casual everyday wear to bold statement pieces, FRSHDROP combines comfort, fashion, and individuality. 
+      We strive to keep our collection fresh, affordable, and always on trend, making sure our customers stand out wherever they go.
+    </p>
+    <button onclick="showShop()" style="margin-top:20px; padding:10px 20px; border:none; border-radius:5px; background:black; color:white; cursor:pointer;">Back to Shop</button>
+  </div>
+  `;
+}
+
+/* SET CATEGORY */
+function setCategory(cat){
+  currentCategory = cat;
+  filterProducts();
+}
+
+/* START */
+if(loggedUser){
+  showShop();
+}else{
+  showLogin();
+} 
+</script>
+
+</body>
+</html>
